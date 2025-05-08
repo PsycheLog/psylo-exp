@@ -1,0 +1,14 @@
+snapshots/
+mlflow_artifacts/
+.env
+.Rhistory
+.Rdata
+.Rprofile
+renv/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+*.swp
+*~
+dvc_storage/

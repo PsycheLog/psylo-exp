@@ -1,0 +1,2 @@
+-- psylo-exp Database Schema
+-- Populate with CREATE TABLE statements (see blueprint Section 7.2).
