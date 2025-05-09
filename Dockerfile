@@ -1,4 +1,4 @@
-FROM ghcr.io/mlflow/mlflow:v2.16.2
+FROM ghcr.io/mlflow/mlflow:v2.22.0
 
-# Install psycopg2-binary for PostgreSQL backend
-RUN pip install psycopg2-binary
+# Install psycopg2-binary
+RUN pip install psycopg2-binary==2.9.10

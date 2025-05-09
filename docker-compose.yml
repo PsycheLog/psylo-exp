@@ -1,50 +1,41 @@
 services:
-  psylodb:
-    image: postgres:17.1
-    container_name: psylodb
+  postgres:
+    image: postgres:latest
+    container_name: psylo_postgres
     ports:
       - "5434:5432"
+    env_file:
+      - .env
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - psylo-network
 
-  psylomlflow:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: psylomlflow
+  mlflow:
+    image: psylo-mlflow:2.22.0
+    container_name: psylo_mlflow
     ports:
       - "5001:5000"
+    env_file:
+      - .env
+    environment:
+      - MLFLOW_TRACKING_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
       - ./mlflow_artifacts:/mlflow/artifacts
-    labels:
-      - "dev.orbstack.http-port=5000"
+    command: [
+      "mlflow", "server",
+      "--backend-store-uri", "postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}",
+      "--default-artifact-root", "/mlflow/artifacts",
+      "--host", "0.0.0.0",
+      "--port", "5000"
+    ]
     depends_on:
-      psylodb:
+      postgres:
         condition: service_healthy
-    command: >
-      mlflow server
-      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@psylodb:5432/${POSTGRES_DB}
-      --default-artifact-root file:///mlflow/artifacts
-      --host 0.0.0.0
-    restart: unless-stopped
-    networks:
-      - psylo-network
 
 volumes:
-  pgdata:
-
-networks:
-  psylo-network:
-    driver: bridge
+  postgres_data:
